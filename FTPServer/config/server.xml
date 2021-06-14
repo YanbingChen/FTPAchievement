@@ -1,0 +1,14 @@
+<config>
+    <rootDir>F:\VanillaGitReposFTP\ServerDir</rootDir>
+    <users>
+        <user>
+            <username>stu1</username>
+            <password>000000</password>
+        </user>
+        <user>
+            <username>stu2</username>
+            <password>111111</password>
+        </user>
+    </users>
+
+</config>
