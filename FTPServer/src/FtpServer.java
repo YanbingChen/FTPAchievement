@@ -26,7 +26,7 @@ public class FtpServer {
     }
 
     public static void main(String args[]) throws IOException {
-        FtpServer ftpServer = new FtpServer(21);
+        FtpServer ftpServer = new FtpServer(5521);
         ftpServer.listen();
     }
 

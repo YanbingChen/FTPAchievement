@@ -31,7 +31,7 @@ public class PasvCommand implements Command {
             //System.out.println("set PASV successful");
 
             //端口开启等待客户端连接，1分钟未等到则关闭
-            serverSocket.setSoTimeout(60000);
+            serverSocket.setSoTimeout(3000);
             Socket datasocket = serverSocket.accept();
             if(datasocket!=null) {
                 t.setDataSocket(datasocket);
@@ -43,6 +43,7 @@ public class PasvCommand implements Command {
             else{
                 writer.write("425 等待超时，无法打开数据连接\r\n");
             }
+            writer.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -1,5 +1,5 @@
 <config>
-    <rootDir>F:\VanillaGitReposFTP\ServerDir</rootDir>
+    <rootDir>/home/kevin/Downloads/FTPRoot</rootDir>
     <users>
         <user>
             <username>stu1</username>

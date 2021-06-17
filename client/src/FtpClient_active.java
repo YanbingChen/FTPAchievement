@@ -6,7 +6,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Vector;
 
-public class Ftp_by_me_active {
+public class FtpClient_active implements Ftp_Client {
+
+    private Socket commandConn;
 
     private BufferedReader controlReader;
     private PrintWriter controlOut;
@@ -15,20 +17,20 @@ public class Ftp_by_me_active {
     private String ftppassword;
 
 
-    private static final int PORT = 21;
+    private static final int PORT = 5521;
 
-    public static boolean isLogined=false  ;
+    public boolean isLogined = false  ;
 
 
-    public Ftp_by_me_active(String url, String username, String password) {
+    public FtpClient_active(String url, String username, String password) {
         try {
-            Socket socket = new Socket(url, PORT);//建立与服务器的socket连接
+            commandConn = new Socket(url, PORT);//建立与服务器的socket连接
 
             setUsername(username);
             setPassword(password);
 
-            controlReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            controlOut = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
+            controlReader = new BufferedReader(new InputStreamReader(commandConn.getInputStream()));
+            controlOut = new PrintWriter(new OutputStreamWriter(commandConn.getOutputStream()), true);
 
             initftp();  //登录到ftp服务器
         } catch (Exception e) {
@@ -74,6 +76,35 @@ public class Ftp_by_me_active {
 
     private void setPassword(String password) {
         this.ftppassword = password;
+    }
+
+    public boolean isLogined() {
+        return isLogined;
+    }
+
+    public boolean logOut() {
+        if(isLogined) {
+            controlOut.println("QUIT ");
+            try {
+                String msg;
+                do {
+                    msg = controlReader.readLine();
+                    System.out.println(msg);
+                } while (!msg.startsWith("221 "));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            controlOut.close();
+            controlReader.close();
+            commandConn.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return true;
     }
 
     //获取所有文件和文件夹的名字
@@ -232,6 +263,18 @@ public class Ftp_by_me_active {
 
         response = controlReader.readLine();
         System.out.println(response);
+    }
+
+    public boolean delete(String fileName) throws Exception {
+        String response;
+        // Send LIST command
+        controlOut.println("DELE " + fileName);
+
+        // Read command response
+        response = controlReader.readLine();
+        response = controlReader.readLine();
+        System.out.println(response);
+        return response.equals("250 文件删除完成");
     }
 
 }

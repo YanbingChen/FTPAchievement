@@ -1,45 +1,43 @@
 import org.apache.commons.net.ftp.FTPFile;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.io.*;
 import java.net.Socket;
-import java.util.StringTokenizer;
 import java.util.Vector;
 
-public class Ftp_by_me_passive {
+public class FtpClient_passive implements Ftp_Client {
 
     private BufferedReader controlReader;
     private PrintWriter controlOut;
-    private FileInputStream is;
+    private Socket commandconn;
+    private Socket dataconn;
+    private BufferedInputStream dataIn;
+    private BufferedOutputStream dataOut;
 
     private static String host;
 
     private String passHost="127.0.0.1";
-    private int passPort=21;
+    private int passPort=5521;      // TODO Temporary
 
     private String ftpusername;
     private String ftppassword;
 
     private boolean isPassMode = false;
 
-    private static final int PORT = 21;
+    private boolean isLogined = false;
+
+    private static final int PORT = 5521;
 
 
-    public Ftp_by_me_passive(String url, String username, String password) {
+    public FtpClient_passive(String url, String username, String password) {
 
         try {
-            Socket socket = new Socket(url, PORT);
+            commandconn = new Socket(url, PORT);
 
             setUsername(username);
             setPassword(password);
 
-            controlReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            controlOut = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
+            controlReader = new BufferedReader(new InputStreamReader(commandconn.getInputStream()));
+            controlOut = new PrintWriter(new OutputStreamWriter(commandconn.getOutputStream()), true);
 
 
             initftp();  //登录到ftp服务器
@@ -77,6 +75,7 @@ public class Ftp_by_me_passive {
                     "SimpleFTP was unable to log in with the supplied password: "
                             + response);
         }
+        this.isLogined = true;
     }
 
     private void setUsername(String username) {
@@ -87,17 +86,47 @@ public class Ftp_by_me_passive {
         this.ftppassword = password;
     }
 
+    @Override
+    public boolean logOut() {
+        if(isLogined) {
+            controlOut.println("QUIT ");
+
+            String msg;
+            try {
+                do {
+                    msg = controlReader.readLine();
+                    System.out.println(msg);
+                } while (!msg.startsWith("221 "));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            controlOut.close();
+            controlReader.close();
+            commandconn.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean isLogined() {
+        return isLogined;
+    }
+
     //获取所有文件和文件夹的名字
-    public FTPFile[] getAllFile() throws Exception {
+    public String[] getAllFile() throws Exception {
         String response;
-        // Go to passive mode
+
+        // Check PassiveMode
         checkIsPassiveMode();
 
         // Send LIST command
         controlOut.println("LIST");
-
-        // Open data connection
-        Socket dataSocket = new Socket(passHost, passPort);
 
         // Read command response
         response = controlReader.readLine();
@@ -105,28 +134,26 @@ public class Ftp_by_me_passive {
 
 
         // Read data from server
-        Vector<FTPFile> tempfiles = new Vector<>();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
+        Vector<String> tempfiles = new Vector<>();
+
         String line = null;
-        while ((line = reader.readLine()) != null) {
+        while ((line = controlReader.readLine()) != null) {
+            if(line.equals("213 当前目录下文件列表显示完成"))
+                break;
             System.out.println(line);
-            FTPFile temp = new FTPFile();
-            setFtpFileInfo(temp, line);
-            tempfiles.add(temp);
+            String[] spl = line.split(" ");
+            if(spl[0].equals("文件") || spl[0].equals("文件夹"))
+                tempfiles.add(line);
         }
 
-
-        reader.close();
-        dataSocket.close();
         // Read command response
-        response = controlReader.readLine();
+        response = line;
         System.out.println(response);
 
-        FTPFile[] files = new FTPFile[tempfiles.size()];
+        String[] files = new String[tempfiles.size()];
         tempfiles.copyInto(files);//将vector数据存到数组里
 
         return files;
-
     }
 
     //通过字符串解析构造一个FTPfile对象
@@ -161,7 +188,7 @@ public class Ftp_by_me_passive {
             return;
         }
 
-        is = new FileInputStream(f);
+        FileInputStream is = new FileInputStream(f);
         BufferedInputStream input = new BufferedInputStream(is);
         String response;
 
@@ -171,28 +198,22 @@ public class Ftp_by_me_passive {
         // Send command STOR
         controlOut.println("STOR " + f.getName());
 
-        // Open data connection
-
-        Socket dataSocket = new Socket(passHost, passPort);
-
         // Read command response
         response = controlReader.readLine();
         System.out.println(response);
 
-        // Read data from server
-        BufferedOutputStream output = new BufferedOutputStream(
-                dataSocket.getOutputStream());
+        dataOut = new BufferedOutputStream(dataconn.getOutputStream());
         byte[] buffer = new byte[4096];
         int bytesRead = 0;
         while ((bytesRead = input.read(buffer)) != -1) {
-            output.write(buffer, 0, bytesRead);
+            dataOut.write(buffer, 0, bytesRead);
         }
 
-        output.flush();
+        dataOut.flush();
         input.close();
-        output.close();
-        dataSocket.close();
-
+        dataOut.close();
+        dataconn.close();
+        isPassMode = false;
 
         response = controlReader.readLine();
         System.out.println(response);
@@ -206,27 +227,26 @@ public class Ftp_by_me_passive {
             controlOut.println("PASV mode");
             response = controlReader.readLine();
             System.out.println(response);
-            if (!response.startsWith("2271 ")) {
+            if (!response.startsWith("227 ")) {
                 throw new IOException("FTPClient could not request passive mode: " + response);
             }
 
-            int opening = response.indexOf('(');
-            int closing = response.indexOf(')', opening + 1);
-            if (closing > 0) {
-                String dataLink = response.substring(opening + 1, closing);
-                StringTokenizer tokenizer = new StringTokenizer(dataLink, ",");
-                try {
-                    passHost = tokenizer.nextToken() + "." + tokenizer.nextToken() + "."
-                            + tokenizer.nextToken() + "." + tokenizer.nextToken();
-                    passPort = Integer.parseInt(tokenizer.nextToken()) * 256
-                            + Integer.parseInt(tokenizer.nextToken());
-                } catch (Exception e) {
-                    throw new IOException(
-                            "FTPClient received bad data link information: "
-                                    + response);
+            String[] split = response.split(" ");
+            if(split.length >= 3) {
+                String[] ipPort = split[2].split(":");
+                String host = ipPort[0];
+                int port = Integer.parseInt(ipPort[1]);
+
+                dataconn = new Socket(host, port);
+                if(dataconn.isConnected()) {
+                    response = controlReader.readLine();
+                    if (!response.startsWith("225 ")) {
+                        throw new IOException("FTPClient could not request passive mode: " + response);
+                    } else {
+                        isPassMode = true;
+                    }
                 }
             }
-//            isPassMode = true;
         }
     }
 
@@ -238,33 +258,45 @@ public class Ftp_by_me_passive {
 
         // Send RETR command
         controlOut.println("RETR " + from_file_name);
-        // Open data connection
-
-        Socket dataSocket = new Socket(passHost, passPort);
-
-
-        // Read data from server
-        BufferedOutputStream output = new BufferedOutputStream(
-                new FileOutputStream(new File(to_path, from_file_name)));
-        BufferedInputStream input = new BufferedInputStream(
-                dataSocket.getInputStream());
-        byte[] buffer = new byte[4096];
-        int bytesRead = 0;
-        while ((bytesRead = input.read(buffer)) != -1) {
-            output.write(buffer, 0, bytesRead);
-        }
-
-        output.flush();
-        output.close();
-        input.close();
-        dataSocket.close();
 
         String response;
         response = controlReader.readLine();
         System.out.println(response);
+        if(response.startsWith("125 ")) {
+            // Read data from server
+            BufferedOutputStream output = new BufferedOutputStream(
+                    new FileOutputStream(new File(to_path, from_file_name)));
+            dataIn = new BufferedInputStream(dataconn.getInputStream());
+            byte[] buffer = new byte[4096];
+            int bytesRead = 0;
+            while ((bytesRead = dataIn.read(buffer)) != -1) {
+                output.write(buffer, 0, bytesRead);
+            }
 
+            output.flush();
+            output.close();
+            dataIn.close();
+            dataconn.close();
+            isPassMode = false;
+
+            response = controlReader.readLine();
+            System.out.println(response);
+        } else {
+            System.out.println(response);
+        }
+
+    }
+
+    public boolean delete(String fileName) throws Exception {
+        String response;
+        // Send LIST command
+        controlOut.println("DELE " + fileName);
+
+        // Read command response
+        response = controlReader.readLine();
         response = controlReader.readLine();
         System.out.println(response);
+        return response.equals("250 文件删除完成");
     }
 
 }
