@@ -17,11 +17,17 @@ public interface Ftp_Client {
     public String[] getAllFile() throws Exception;
 
     //生成InputStream用于上传本地文件
-    public void upload(String File_path) throws Exception;
+    public void upload(String File_path, String FileName) throws Exception;
 
     //下载 from_file_name是下载的文件名,to_path是下载到的路径地址
     public void download(String from_file_name, String to_path) throws Exception;
 
     // delete
     public boolean delete(String fileName) throws Exception;
+
+    // getRemotePath
+    public String getRemotePath() throws Exception;
+
+    // CWD
+    public void changeDir(String dir) throws Exception;
 }

@@ -22,6 +22,7 @@ public class MainGUI implements ActionListener{
     //初始化参数--------------------------------
     static String[] file;
     static String[] localFiles;
+    static String remotePath;
     static String localPath;
     static String FTP="127.0.0.1";
     static String username="liyz";
@@ -34,6 +35,11 @@ public class MainGUI implements ActionListener{
     private JTable localTable  = null;
     private JScrollPane ftpScrollPane = null;
     private JScrollPane localScrollPane  = null;
+
+    private JTextField logField;
+    private JTextField localPathText;
+    private JTextField remotePathText;
+
     static Ftp_Client ftp;
     static File localDir;
     public static Ftp_Client getFtp() {
@@ -153,6 +159,7 @@ public class MainGUI implements ActionListener{
                     if(ftp.isLogined())
                     {
                         file=ftp.getAllFile();
+                        remotePath = ftp.getRemotePath();
                         localDir = new File(localPath);
                         localFiles = localDir.list();
                         setTableInfo();//显示所有文件信息
@@ -160,6 +167,9 @@ public class MainGUI implements ActionListener{
                         url.setEditable(false);
                         usernameField.setEditable(false);
                         passwordField.setEditable(false);
+
+                        localPathText.setText(localPath);
+                        remotePathText.setText(remotePath);
                     }
 
                 } catch (Exception e1) {
@@ -225,7 +235,6 @@ public class MainGUI implements ActionListener{
         refresh.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
                 try{
-                    file=ftp.getAllFile();
                     setTableInfo();
                 }
                 catch (Exception e)
@@ -241,12 +250,12 @@ public class MainGUI implements ActionListener{
         //刷新按钮--------------------------------------------------
 
         // Log Content --------------------------------------------
-        JTextField logContent =  new JTextField("------");   //FTP服务地址
-        logContent.setBounds(440,7,140,76);
+        logField =  new JTextField("------");   //FTP服务地址
+        logField.setBounds(440,7,140,76);
         // logContent.setHorizontalAlignment(SwingConstants.CENTER);
-        logContent.setFont(font_log);
-        logContent.setEditable(false);
-        frame.getContentPane().add(logContent);
+        logField.setFont(font_log);
+        logField.setEditable(false);
+        frame.getContentPane().add(logField);
         // Log Content --------------------------------------------
 
         // Init tableHeader
@@ -264,18 +273,19 @@ public class MainGUI implements ActionListener{
         label.setFont(font_text);
         frame.getContentPane().add(label);
 
-        JTextField localDir = new JTextField("本地路径");   //FTP服务地址
-        localDir.setBounds(80,100,167,25);
-        localDir.setFont(font_text);
-        localDir.setEditable(false);
-        frame.getContentPane().add(localDir);
+        localPathText = new JTextField("本地路径");   //本地路径
+        localPathText.setBounds(80,100,167,25);
+        localPathText.setFont(font_text);
+        localPathText.setEditable(false);
+        frame.getContentPane().add(localPathText);
 
-        JTextField remoteDir = new JTextField("远程路径"); //用户名
-        remoteDir.setBounds(360,100,167,25);
-        remoteDir.setFont(font_text);
-        remoteDir.setEditable(false);
-        frame.getContentPane().add(remoteDir);
+        remotePathText = new JTextField("远程路径"); //远程路径
+        remotePathText.setBounds(360,100,167,25);
+        remotePathText.setFont(font_text);
+        remotePathText.setEditable(false);
+        frame.getContentPane().add(remotePathText);
 
+        // Last Level Directory
         JButton localLastDir = new JButton();
         // TODO Set a picture for buttom
         localLastDir.setBounds(248, 100, 25, 25);
@@ -404,6 +414,9 @@ public class MainGUI implements ActionListener{
             e.printStackTrace();
         }
 
+        // Set PathText
+        remotePathText.setText(remotePath);
+
         //table数据初始化  从FTP读取所有文件
         String[][] remoteData=new String[file.length][4];
         for(int row=0;row<file.length;row++)
@@ -450,7 +463,9 @@ public class MainGUI implements ActionListener{
         // -----------------------------------------------------------------------------
         if(localScrollPane != null) frame.getContentPane().remove(localScrollPane);
 
+        localDir = new File(localPath);
         localFiles = localDir.list();
+        localPathText.setText(localPath);
 
        //从Local读取所有文件
         String[][] localData=new String[localFiles.length][4];

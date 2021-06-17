@@ -71,21 +71,31 @@ public class DownloadButtonColumn extends AbstractCellEditor implements
         }
         String from_file_name = getName(file1[table.getSelectedRow()]);
 
-        String path = MainGUI.getLocalPath();
-        try {
-            MainGUI.getFtp().download(from_file_name, path);
-            System.out.println("下载成功! ");
+        // Check if SelectedRow is a Directory.
+        if(file1[table.getSelectedRow()].startsWith("文件夹")) {
+            try {
+                MainGUI.getFtp().changeDir(from_file_name);
+                MainGUI.remotePath = MainGUI.getFtp().getRemotePath();
+            } catch (Exception e2) {
+                e2.printStackTrace();
+            }
 
-            // Refresh Tables
-            guiThread.setTableInfo();
+        } else {
+            String path = MainGUI.getLocalPath();
+            try {
+                MainGUI.getFtp().download(from_file_name, path);
+                System.out.println("下载成功! ");
 
-        }catch (Exception e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        } finally {
 
-//                Frame_Main.getFtp().close_connection();
+
+            }catch (Exception e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
         }
+
+        // Refresh Tables
+        guiThread.setTableInfo();
     }
 
 

@@ -179,10 +179,10 @@ public class FtpClient_passive implements Ftp_Client {
 
 
     //生成InputStream用于上传本地文件
-    public void upload(String File_path) throws Exception {
-        System.out.print("File Path :" + File_path);
+    public void upload(String File_path, String FileName) throws Exception {
+        System.out.print("File Path :" + File_path + File.separator + FileName);
 
-        File f = new File(File_path);
+        File f = new File(File_path, FileName);
         if (!f.exists()) {
             System.out.println("File not Exists...");
             return;
@@ -297,6 +297,27 @@ public class FtpClient_passive implements Ftp_Client {
         response = controlReader.readLine();
         System.out.println(response);
         return response.equals("250 文件删除完成");
+    }
+
+    public String getRemotePath() throws Exception {
+        String response;
+        // Send LIST command
+        controlOut.println("PWD ");
+
+        // Read command response
+        response = controlReader.readLine();
+        response = controlReader.readLine();
+        return response;
+    }
+
+    public void changeDir(String dir) throws Exception {
+        String response;
+        // Send LIST command
+        controlOut.println("CWD " + dir);
+
+        // Read command response
+        response = controlReader.readLine();
+
     }
 
 }

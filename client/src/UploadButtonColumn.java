@@ -66,16 +66,23 @@ public class UploadButtonColumn extends AbstractCellEditor implements
         System.out.println("上传！！！！！");
 
         String localFileName = MainGUI.localFiles[table.getSelectedRow()];
-        String path = MainGUI.localPath + "/" +localFileName;
-        try {
-            //上传
-            MainGUI.getFtp().upload(path);
-            System.out.println("文件上传成功");
-        } catch (Exception e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
+
+        // Check if file is Directory
+        File localFile = new File(MainGUI.localPath, localFileName);
+        if(localFile.isDirectory()) {
+            MainGUI.localPath = localFile.getPath();
+        } else {
+            try {
+                //上传
+                MainGUI.getFtp().upload(MainGUI.localPath, localFileName);
+                System.out.println("文件上传成功");
+            } catch (Exception e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
+            //上传点击按钮触发------------------------------------
         }
-        //上传点击按钮触发------------------------------------
+
 
         // refresh tables
         guiThread.setTableInfo();
