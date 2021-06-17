@@ -137,72 +137,6 @@ public class MainGUI implements ActionListener{
         passwordField.setFont(font_text);
         frame.getContentPane().add(passwordField);
 
-        //登录按钮------------------------------------------------
-        JButton login=new JButton("登录");
-        login.setFont(font_buttom);
-        login.setBackground(UIManager.getColor("Button.highlight"));
-        login.setBounds(260, 7, 64, 50);
-        frame.getContentPane().add(login);
-        login.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.out.println("登录==============");
-                try {
-                    FTP=url.getText().trim();
-                    username=usernameField.getText().trim();
-                    password=passwordField.getText().trim();
-
-                    if(ftpMode.getText().equals("主动模式"))
-                        ftp=new FtpClient_active(FTP,username,password);
-                    else
-                        ftp=new FtpClient_passive(FTP,username,password);
-                    if(ftp.isLogined())
-                    {
-                        file=ftp.getAllFile();
-                        remotePath = ftp.getRemotePath();
-                        localDir = new File(localPath);
-                        localFiles = localDir.list();
-                        setTableInfo();//显示所有文件信息
-
-                        url.setEditable(false);
-                        usernameField.setEditable(false);
-                        passwordField.setEditable(false);
-
-                        localPathText.setText(localPath);
-                        remotePathText.setText(remotePath);
-                    }
-
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                    JOptionPane.showConfirmDialog(null, "用户名或者密码错误\n username："+username, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        });
-
-        //退出按钮------------------------------------------------
-        JButton exitButton=new JButton("退出");
-        exitButton.setFont(font_buttom);
-        exitButton.setBackground(UIManager.getColor("Button.highlight"));
-        exitButton.setBounds(260, 59, 64, 24);
-        frame.getContentPane().add(exitButton);
-        exitButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if(ftp.isLogined() && ftp.logOut()) {
-                    System.out.println("Logout Success!");
-                    url.setEditable(true);
-                    usernameField.setEditable(true);
-                    passwordField.setEditable(true);
-                    // TODO More Cleanup Stuff
-                    frame.getContentPane().remove(ftpScrollPane);
-                    ftpScrollPane = null;
-                    frame.getContentPane().remove(localScrollPane);
-                    localScrollPane = null;
-                    frame.repaint();
-
-                }
-            }
-        });
 
         // Setting FTP Mode
         ftpMode.setBounds(334,7,96,24);
@@ -246,6 +180,7 @@ public class MainGUI implements ActionListener{
         refresh.setFont(font_buttom);
         refresh.setBackground(UIManager.getColor("Button.highlight"));
         refresh.setBounds(334, 59, 96, 24);
+        refresh.setEnabled(false);
         frame.getContentPane().add(refresh);
         //刷新按钮--------------------------------------------------
 
@@ -285,18 +220,22 @@ public class MainGUI implements ActionListener{
         remotePathText.setEditable(false);
         frame.getContentPane().add(remotePathText);
 
-        // Last Level Directory
+        // Last Level Directory for Local
         JButton localLastDir = new JButton();
-        // TODO Set a picture for buttom
+        localLastDir.setIcon(new ImageIcon("client/gui/LeftArrow.png"));
         localLastDir.setBounds(248, 100, 25, 25);
+        localLastDir.setEnabled(false);
         frame.getContentPane().add(localLastDir);
         localLastDir.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // TODO Impliment this
-                // Step1 Set text to last dir
-                // Step2 read files in last dir
-                // Step3 updateTable
+                File localFile = new File(MainGUI.localPath);
+                if(localFile.getParentFile().isDirectory()) {
+                    MainGUI.localPath = localFile.getParentFile().getPath();
+                }
+
+                // refresh table
+                setTableInfo();
             }
         });
 
@@ -315,18 +254,24 @@ public class MainGUI implements ActionListener{
             }
         });
 */
-
+        // Last Level Directory for Local
         JButton remoteLastDir = new JButton();
-        // TODO Set a picture for buttom
+        remoteLastDir.setIcon(new ImageIcon("client/gui/LeftArrow.png"));
         remoteLastDir.setBounds(528, 100, 25, 25);
+        remoteLastDir.setEnabled(false);
         frame.getContentPane().add(remoteLastDir);
         remoteLastDir.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // TODO Impliment this
-                // Step1 Set text to last dir
-                // Step2 read files in last dir
-                // Step3 updateTable
+                try {
+                    ftp.changeDir("..");
+                    remotePath = ftp.getRemotePath();
+                } catch (Exception e2) {
+                    e2.printStackTrace();
+                }
+
+                // refresh table
+                setTableInfo();
             }
         });
 /*
@@ -346,14 +291,17 @@ public class MainGUI implements ActionListener{
         });
 */
 
-        /*
-        //删除按钮------------------------------------------------
-        JButton deleteButtom = new JButton("删除");
-        modeSwitch.setFont(font_buttom);
-        modeSwitch.setBackground(UIManager.getColor("Button.highlight"));
-        modeSwitch.setBounds(334, 27, 96, 18);
-        frame.getContentPane().add(modeSwitch);
-        modeSwitch.addActionListener(new ActionListener() {
+
+
+
+        //登录按钮------------------------------------------------
+        JButton login=new JButton("登录");
+        JButton exitButton=new JButton("退出");
+        login.setFont(font_buttom);
+        login.setBackground(UIManager.getColor("Button.highlight"));
+        login.setBounds(260, 7, 64, 50);
+        frame.getContentPane().add(login);
+        login.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 System.out.println("登录==============");
@@ -362,17 +310,33 @@ public class MainGUI implements ActionListener{
                     username=usernameField.getText().trim();
                     password=passwordField.getText().trim();
 
-                    ftp=new Ftp_by_me_active(FTP,username,password);
-                    if(Ftp_by_me_active.isLogined)
+                    if(ftpMode.getText().equals("主动模式"))
+                        ftp=new FtpClient_active(FTP,username,password);
+                    else
+                        ftp=new FtpClient_passive(FTP,username,password);
+                    if(ftp.isLogined())
                     {
                         file=ftp.getAllFile();
+                        remotePath = ftp.getRemotePath();
+                        localDir = new File(localPath);
+                        localFiles = localDir.list();
                         setTableInfo();//显示所有文件信息
 
                         url.setEditable(false);
                         usernameField.setEditable(false);
                         passwordField.setEditable(false);
-                    }
 
+                        localPathText.setText(localPath);
+                        remotePathText.setText(remotePath);
+
+                        //Set Buttom Mode
+                        refresh.setEnabled(true);
+                        exitButton.setEnabled(true);
+                        modeSwitch.setEnabled(false);
+                        localLastDir.setEnabled(true);
+                        remoteLastDir.setEnabled(true);
+                        login.setEnabled(false);
+                    }
 
                 } catch (Exception e1) {
                     e1.printStackTrace();
@@ -380,26 +344,39 @@ public class MainGUI implements ActionListener{
                 }
             }
         });
-*/
-        /*
-        //上传按钮--------------------------------------------------
-        JButton upload = new JButton("上传");
-        upload.setFont(new Font("宋体", Font.PLAIN, 12));
-        upload.setBackground(UIManager.getColor("Button.highlight"));
-        upload.setBounds(312, 45, 82, 23);
-        frame.getContentPane().add(upload);
-        upload.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent arg0) {
 
+        //退出按钮------------------------------------------------
+        exitButton.setFont(font_buttom);
+        exitButton.setBackground(UIManager.getColor("Button.highlight"));
+        exitButton.setBounds(260, 59, 64, 24);
+        exitButton.setEnabled(false);
+        frame.getContentPane().add(exitButton);
+        exitButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(ftp.isLogined() && ftp.logOut()) {
+                    System.out.println("Logout Success!");
+                    url.setEditable(true);
+                    usernameField.setEditable(true);
+                    passwordField.setEditable(true);
+                    // TODO More Cleanup Stuff
+                    frame.getContentPane().remove(ftpScrollPane);
+                    ftpScrollPane = null;
+                    frame.getContentPane().remove(localScrollPane);
+                    localScrollPane = null;
+                    frame.repaint();
+
+                    //Set Buttom Mode
+                    refresh.setEnabled(false);
+                    exitButton.setEnabled(false);
+                    modeSwitch.setEnabled(true);
+                    localLastDir.setEnabled(false);
+                    remoteLastDir.setEnabled(false);
+                    login.setEnabled(true);
+
+                }
             }
         });
-
-        //上传按钮--------------------------------------------------
-*/
-
-
-
-
 
     }
 
