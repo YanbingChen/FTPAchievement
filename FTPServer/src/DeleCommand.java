@@ -7,6 +7,14 @@ public class DeleCommand implements Command{
 
     @Override
     public void getResult(String data, Writer writer, ConnectionThread t) {
+        if(data == null || data.equals("")) {
+            try {
+                writer.write("350 文件删除出错\r\n");
+                writer.flush();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         String deleDir = t.getNowDir()+File.separator+data;
         File file = new File(deleDir);
         //System.out.println(desDir);
