@@ -14,8 +14,8 @@ public class PortCommand implements Command{
             String[] Split =  data.split(":");
             String ip = Split[0];
             String port = Integer.toString(Integer.parseInt(Split[1]));
-            System.out.println("ip is "+ip);
-            System.out.println("port is "+port);
+            //System.out.println("ip is "+ip);
+            //System.out.println("port is "+port);
             t.setDataIp(ip);
             t.setDataPort(port);
             //之前建立过连接就close重新建
