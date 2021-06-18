@@ -1,5 +1,5 @@
 <config>
-    <rootDir>/home/kevin/Downloads/FTPRoot</rootDir>
+    <rootDir>F:\FTPRepos\ServerDir</rootDir>
     <users>
         <user>
             <username>stu1</username>

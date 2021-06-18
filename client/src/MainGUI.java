@@ -3,7 +3,6 @@ import org.jdom.Element;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 
-
 import java.awt.EventQueue;
 
 import javax.swing.*;
@@ -25,9 +24,8 @@ public class MainGUI implements ActionListener{
     static String remotePath;
     static String localPath;
     static String FTP="127.0.0.1";
-    static String username="liyz";
+    static String username="stu1";
     static String password="000000";
-    //初始化参数--------------------------------
 
 
     private JFrame frame;
@@ -58,14 +56,12 @@ public class MainGUI implements ActionListener{
      */
     public static void main(String[] args) {
 
-        EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    MainGUI window = new MainGUI();
-                    window.frame.setVisible(true);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+        EventQueue.invokeLater(() -> {
+            try {
+                MainGUI window = new MainGUI();
+                window.frame.setVisible(true);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         });
 
@@ -85,7 +81,6 @@ public class MainGUI implements ActionListener{
         initConfig();
 
         frame = new JFrame();
-        // frame.setIconImage(Toolkit.getDefaultToolkit().getImage(Frame_Main.class.getResource("/com/sun/java/swing/plaf/windows/icons/UpFolder.gif")));
         frame.setTitle("FTP Client");
         frame.setBounds(0, 0, 600, 600);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -93,32 +88,29 @@ public class MainGUI implements ActionListener{
         frame.setResizable(false);
 
         // All Modules
-        JTextField ftpMode =  new JTextField("主动模式");   //FTP模式
+        JTextField ftpMode =  new JTextField("主动模式");   //默认为主动模式
 
         // Font
         Font font_text =new Font("宋体",Font.PLAIN,16);
+        Font font_text_path=new Font("宋体",Font.PLAIN,12);
         Font font_buttom =new Font("宋体",Font.PLAIN,12);
-        Font font_log = new Font("Times New Roman",Font.PLAIN,8);
 
         //显示基本信息(FTP username)-----------------------------------------------
         JLabel label = new JLabel("服务器");
         label.setBounds(20, 7, 55, 24);
         label.setHorizontalAlignment(SwingConstants.RIGHT);
-        //label.setVerticalAlignment(SwingConstants.CENTER);
         label.setFont(font_text);
         frame.getContentPane().add(label);
 
         label = new JLabel("用户名");
         label.setBounds(20, 33, 55, 24);
         label.setHorizontalAlignment(SwingConstants.RIGHT);
-        //label.setVerticalAlignment(SwingConstants.CENTER);
         label.setFont(font_text);
         frame.getContentPane().add(label);
 
         label = new JLabel("密码");
         label.setBounds(20, 59, 55, 24);
         label.setHorizontalAlignment(SwingConstants.RIGHT);
-        //label.setVerticalAlignment(SwingConstants.CENTER);
         label.setFont(font_text);
         frame.getContentPane().add(label);
 
@@ -151,30 +143,25 @@ public class MainGUI implements ActionListener{
         modeSwitch.setBackground(UIManager.getColor("Button.highlight"));
         modeSwitch.setBounds(334, 33, 96, 24);
         frame.getContentPane().add(modeSwitch);
-        modeSwitch.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.out.println("切换模式==============");
-                String mode = ftpMode.getText();
-                if(mode.equals("主动模式")) {
-                    ftpMode.setText("被动模式");
-                } else {
-                    ftpMode.setText("主动模式");
-                }
+        modeSwitch.addActionListener(e -> {
+            System.out.println("切换模式==============");
+            String mode = ftpMode.getText();
+            if(mode.equals("主动模式")) {
+                ftpMode.setText("被动模式");
+            } else {
+                ftpMode.setText("主动模式");
             }
         });
 
         //刷新按钮--------------------------------------------------
         JButton refresh = new JButton("刷新");
-        refresh.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent arg0) {
-                try{
-                    setTableInfo();
-                }
-                catch (Exception e)
-                {
-                    e.printStackTrace();
-                }
+        refresh.addActionListener(arg0 -> {
+            try{
+                setTableInfo();
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
             }
         });
         refresh.setFont(font_buttom);
@@ -182,41 +169,29 @@ public class MainGUI implements ActionListener{
         refresh.setBounds(334, 59, 96, 24);
         refresh.setEnabled(false);
         frame.getContentPane().add(refresh);
-        //刷新按钮--------------------------------------------------
-
-        // Log Content --------------------------------------------
-        logField =  new JTextField("------");   //FTP服务地址
-        logField.setBounds(440,7,140,76);
-        // logContent.setHorizontalAlignment(SwingConstants.CENTER);
-        logField.setFont(font_log);
-        logField.setEditable(false);
-        frame.getContentPane().add(logField);
-        // Log Content --------------------------------------------
 
         // Init tableHeader
         label = new JLabel("本地");
         label.setBounds(20, 100, 55, 25);
         label.setHorizontalAlignment(SwingConstants.RIGHT);
-        //label.setVerticalAlignment(SwingConstants.CENTER);
         label.setFont(font_text);
         frame.getContentPane().add(label);
 
         label = new JLabel("远程");
         label.setBounds(300, 100, 55, 25);
         label.setHorizontalAlignment(SwingConstants.RIGHT);
-        //label.setVerticalAlignment(SwingConstants.CENTER);
         label.setFont(font_text);
         frame.getContentPane().add(label);
 
         localPathText = new JTextField("本地路径");   //本地路径
         localPathText.setBounds(80,100,167,25);
-        localPathText.setFont(font_text);
+        localPathText.setFont(font_text_path);
         localPathText.setEditable(false);
         frame.getContentPane().add(localPathText);
 
         remotePathText = new JTextField("远程路径"); //远程路径
         remotePathText.setBounds(360,100,167,25);
-        remotePathText.setFont(font_text);
+        remotePathText.setFont(font_text_path);
         remotePathText.setEditable(false);
         frame.getContentPane().add(remotePathText);
 
@@ -226,73 +201,31 @@ public class MainGUI implements ActionListener{
         localLastDir.setBounds(248, 100, 25, 25);
         localLastDir.setEnabled(false);
         frame.getContentPane().add(localLastDir);
-        localLastDir.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                File localFile = new File(MainGUI.localPath);
-                if(localFile.getParentFile().isDirectory()) {
-                    MainGUI.localPath = localFile.getParentFile().getPath();
-                }
-
-                // refresh table
-                setTableInfo();
+        localLastDir.addActionListener(e -> {
+            File localFile = new File(MainGUI.localPath);
+            if(localFile.getParentFile().isDirectory()) {
+                MainGUI.localPath = localFile.getParentFile().getPath();
             }
+            // refresh table
+            setTableInfo();
         });
 
-        /*
-        JButton localLastDir = new JButton();
-        // TODO Set a picture for buttom
-        login.setBounds(273, 100, 25, 25);
-        frame.getContentPane().add(login);
-        login.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // TODO Impliment this
-                // Step1 Set text to last dir
-                // Step2 read files in last dir
-                // Step3 updateTable
-            }
-        });
-*/
         // Last Level Directory for Local
         JButton remoteLastDir = new JButton();
         remoteLastDir.setIcon(new ImageIcon("client/gui/LeftArrow.png"));
         remoteLastDir.setBounds(528, 100, 25, 25);
         remoteLastDir.setEnabled(false);
         frame.getContentPane().add(remoteLastDir);
-        remoteLastDir.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    ftp.changeDir("..");
-                    remotePath = ftp.getRemotePath();
-                } catch (Exception e2) {
-                    e2.printStackTrace();
-                }
-
-                // refresh table
-                setTableInfo();
+        remoteLastDir.addActionListener(e -> {
+            try {
+                ftp.changeDir("..");
+                remotePath = ftp.getRemotePath();
+            } catch (Exception e2) {
+                e2.printStackTrace();
             }
+            // refresh table
+            setTableInfo();
         });
-/*
-        JButton login=new JButton("登录");
-        login.setFont(font_buttom);
-        login.setBackground(UIManager.getColor("Button.highlight"));
-        login.setBounds(553, 100, 25, 25);
-        frame.getContentPane().add(login);
-        login.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // TODO Impliment this
-                // Step1 Set text to last dir
-                // Step2 read files in last dir
-                // Step3 updateTable
-            }
-        });
-*/
-
-
-
 
         //登录按钮------------------------------------------------
         JButton login=new JButton("登录");
@@ -301,47 +234,44 @@ public class MainGUI implements ActionListener{
         login.setBackground(UIManager.getColor("Button.highlight"));
         login.setBounds(260, 7, 64, 50);
         frame.getContentPane().add(login);
-        login.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.out.println("登录==============");
-                try {
-                    FTP=url.getText().trim();
-                    username=usernameField.getText().trim();
-                    password=passwordField.getText().trim();
+        login.addActionListener(e -> {
+            System.out.println("登录==============");
+            try {
+                FTP=url.getText().trim();
+                username=usernameField.getText().trim();
+                password=passwordField.getText().trim();
 
-                    if(ftpMode.getText().equals("主动模式"))
-                        ftp=new FtpClient_active(FTP,username,password);
-                    else
-                        ftp=new FtpClient_passive(FTP,username,password);
-                    if(ftp.isLogined())
-                    {
-                        file=ftp.getAllFile();
-                        remotePath = ftp.getRemotePath();
-                        localDir = new File(localPath);
-                        localFiles = localDir.list();
-                        setTableInfo();//显示所有文件信息
+                if(ftpMode.getText().equals("主动模式"))
+                    ftp=new FtpClient_active(FTP,username,password);
+                else
+                    ftp=new FtpClient_passive(FTP,username,password);
+                if(ftp.isLogined())
+                {
+                    file=ftp.getAllFile();
+                    remotePath = ftp.getRemotePath();
+                    localDir = new File(localPath);
+                    localFiles = localDir.list();
+                    setTableInfo();//显示所有文件信息
 
-                        url.setEditable(false);
-                        usernameField.setEditable(false);
-                        passwordField.setEditable(false);
+                    url.setEditable(false);
+                    usernameField.setEditable(false);
+                    passwordField.setEditable(false);
 
-                        localPathText.setText(localPath);
-                        remotePathText.setText(remotePath);
+                    localPathText.setText(localPath);
+                    remotePathText.setText(remotePath);
 
-                        //Set Buttom Mode
-                        refresh.setEnabled(true);
-                        exitButton.setEnabled(true);
-                        modeSwitch.setEnabled(false);
-                        localLastDir.setEnabled(true);
-                        remoteLastDir.setEnabled(true);
-                        login.setEnabled(false);
-                    }
-
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                    JOptionPane.showConfirmDialog(null, "用户名或者密码错误\n username："+username, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
+                    //Set Buttom Mode
+                    refresh.setEnabled(true);
+                    exitButton.setEnabled(true);
+                    modeSwitch.setEnabled(false);
+                    localLastDir.setEnabled(true);
+                    remoteLastDir.setEnabled(true);
+                    login.setEnabled(false);
                 }
+
+            } catch (Exception e1) {
+                e1.printStackTrace();
+                JOptionPane.showConfirmDialog(null, "用户名或者密码错误\n username："+username, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -351,30 +281,27 @@ public class MainGUI implements ActionListener{
         exitButton.setBounds(260, 59, 64, 24);
         exitButton.setEnabled(false);
         frame.getContentPane().add(exitButton);
-        exitButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if(ftp.isLogined() && ftp.logOut()) {
-                    System.out.println("Logout Success!");
-                    url.setEditable(true);
-                    usernameField.setEditable(true);
-                    passwordField.setEditable(true);
-                    // TODO More Cleanup Stuff
-                    frame.getContentPane().remove(ftpScrollPane);
-                    ftpScrollPane = null;
-                    frame.getContentPane().remove(localScrollPane);
-                    localScrollPane = null;
-                    frame.repaint();
+        exitButton.addActionListener(e -> {
+            if(ftp.isLogined() && ftp.logOut()) {
+                System.out.println("Logout Success!");
+                url.setEditable(true);
+                usernameField.setEditable(true);
+                passwordField.setEditable(true);
+                // TODO More Cleanup Stuff
+                frame.getContentPane().remove(ftpScrollPane);
+                ftpScrollPane = null;
+                frame.getContentPane().remove(localScrollPane);
+                localScrollPane = null;
+                frame.repaint();
 
-                    //Set Buttom Mode
-                    refresh.setEnabled(false);
-                    exitButton.setEnabled(false);
-                    modeSwitch.setEnabled(true);
-                    localLastDir.setEnabled(false);
-                    remoteLastDir.setEnabled(false);
-                    login.setEnabled(true);
+                //Set Buttom Mode
+                refresh.setEnabled(false);
+                exitButton.setEnabled(false);
+                modeSwitch.setEnabled(true);
+                localLastDir.setEnabled(false);
+                remoteLastDir.setEnabled(false);
+                login.setEnabled(true);
 
-                }
             }
         });
 
@@ -400,20 +327,18 @@ public class MainGUI implements ActionListener{
         {
 
             remoteData[row][0]=getName(file[row]);
-
             if(isDirectory(file[row]))
             {
                 remoteData[row][1]="文件夹";
             } else {
                 remoteData[row][1]=getSize(file[row])+"";
             }
-
             remoteData[row][2]="下载";
             remoteData[row][3]="删除";
         }
 
         //table列名-----------------------------------------------------
-        String[] columnNames = {"文件", "文件大小(B)", "下载", "删除"};
+        String[] columnNames = {"文件", "大小(B)", "下载", "删除"};
         DefaultTableModel model = new DefaultTableModel();
         model.setDataVector(remoteData, columnNames);
 
@@ -430,14 +355,15 @@ public class MainGUI implements ActionListener{
         ftpTable.setCellSelectionEnabled(true);
         ftpTable.setFont(new Font("微软雅黑", Font.PLAIN, 12));
         ftpTable.setBorder(new LineBorder(new Color(0, 0, 0)));
-        ftpTable.getColumnModel().getColumn(0).setPreferredWidth(200);
+        ftpTable.getColumnModel().getColumn(0).setPreferredWidth(175);
+        ftpTable.getColumnModel().getColumn(1).setPreferredWidth(150);
         ftpTable.setToolTipText("可以点击");
 
         //table button初始化(最后一列的按键)--------------------
         DownloadButtonColumn downButt = new DownloadButtonColumn(ftpTable, 2, this);
         DeleteButtonColumn deleteButt = new DeleteButtonColumn(ftpTable, 3, this, DeleteButtonColumn.REMOTE);
 
-        // -----------------------------------------------------------------------------
+
         if(localScrollPane != null) frame.getContentPane().remove(localScrollPane);
 
         localDir = new File(localPath);
@@ -465,7 +391,7 @@ public class MainGUI implements ActionListener{
 
         //table列名-----------------------------------------------------
 
-        String[] localColumnNames = {"文件", "文件大小(B)", "上传", "删除"};
+        String[] localColumnNames = {"文件", "大小(B)", "上传", "删除"};
         DefaultTableModel localModel = new DefaultTableModel();
         localModel.setDataVector(localData, localColumnNames);
 
@@ -473,7 +399,7 @@ public class MainGUI implements ActionListener{
         localScrollPane = new JScrollPane();
         localScrollPane.setBounds(20, 130, 260, 430);
         frame.getContentPane().add(localScrollPane);
-        //加滚动条-----------------------------------------------------
+
 
         //table功能------------------------------------------------------
         localTable = new JTable(localModel);
@@ -482,7 +408,8 @@ public class MainGUI implements ActionListener{
         localTable.setCellSelectionEnabled(true);
         localTable.setFont(new Font("微软雅黑", Font.PLAIN, 12));
         localTable.setBorder(new LineBorder(new Color(0, 0, 0)));
-        localTable.getColumnModel().getColumn(0).setPreferredWidth(200);
+        localTable.getColumnModel().getColumn(0).setPreferredWidth(175);
+        localTable.getColumnModel().getColumn(1).setPreferredWidth(150);
         localTable.setToolTipText("可以点击");
 
         //table button初始化(最后一列的按键)--------------------

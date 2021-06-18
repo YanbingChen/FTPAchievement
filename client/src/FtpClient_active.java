@@ -1,5 +1,3 @@
-import org.apache.commons.net.ftp.FTPFile;
-
 import javax.swing.*;
 import java.io.*;
 import java.net.ServerSocket;
@@ -17,7 +15,7 @@ public class FtpClient_active implements Ftp_Client {
     private String ftppassword;
 
 
-    private static final int PORT = 5521;
+    private static final int PORT = 21;
 
     public boolean isLogined = false  ;
 
@@ -139,27 +137,6 @@ public class FtpClient_active implements Ftp_Client {
         tempfiles.copyInto(files);//将vector数据存到数组里
 
         return files;
-
-    }
-
-    //通过字符串解析构造一个FTPfile对象
-    private void setFtpFileInfo(FTPFile in, String info) {
-        String infos[] = info.split(" ");
-        Vector<String> vinfos = new Vector<>();
-        for (int i = 0; i < infos.length; i++) {
-            if (!infos[i].equals(""))
-                vinfos.add(infos[i]);
-        }
-        in.setName(vinfos.get(8));
-        in.setSize(Integer.parseInt(vinfos.get(4)));
-        String type=info.substring(0,1);
-        if(type.equals("d"))
-        {
-            in.setType(1);//设置为文件夹
-        }else
-        {
-            in.setType(0);//设置为文件
-        }
 
     }
 

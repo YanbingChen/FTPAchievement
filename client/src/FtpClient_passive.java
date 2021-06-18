@@ -1,5 +1,3 @@
-import org.apache.commons.net.ftp.FTPFile;
-
 import java.io.*;
 import java.net.Socket;
 import java.util.Vector;
@@ -16,8 +14,6 @@ public class FtpClient_passive implements Ftp_Client {
     private static String host;
 
     private String passHost="127.0.0.1";
-    private int passPort=5521;      // TODO Temporary
-
     private String ftpusername;
     private String ftppassword;
 
@@ -25,7 +21,7 @@ public class FtpClient_passive implements Ftp_Client {
 
     private boolean isLogined = false;
 
-    private static final int PORT = 5521;
+    private static final int PORT = 21;
 
 
     public FtpClient_passive(String url, String username, String password) {
@@ -155,28 +151,6 @@ public class FtpClient_passive implements Ftp_Client {
 
         return files;
     }
-
-    //通过字符串解析构造一个FTPfile对象
-    private void setFtpFileInfo(FTPFile in, String info) {
-        String infos[] = info.split(" ");
-        Vector<String> vinfos = new Vector<>();
-        for (int i = 0; i < infos.length; i++) {
-            if (!infos[i].equals(""))
-                vinfos.add(infos[i]);
-        }
-        in.setName(vinfos.get(8));
-        in.setSize(Integer.parseInt(vinfos.get(4)));
-        String type=info.substring(0,1);
-        if(type.equals("d"))
-        {
-            in.setType(1);//设置为文件夹
-        }else
-        {
-            in.setType(0);//设置为文件
-        }
-
-    }
-
 
     //生成InputStream用于上传本地文件
     public void upload(String File_path, String FileName) throws Exception {
