@@ -1,12 +1,12 @@
-import org.apache.commons.net.ftp.FTPFile;
-
 import javax.swing.*;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Vector;
 
-public class Ftp_by_me_active {
+public class FtpClient_active implements Ftp_Client {
+
+    private Socket commandConn;
 
     private BufferedReader controlReader;
     private PrintWriter controlOut;
@@ -17,18 +17,18 @@ public class Ftp_by_me_active {
 
     private static final int PORT = 21;
 
-    public static boolean isLogined=false  ;
+    public boolean isLogined = false  ;
 
 
-    public Ftp_by_me_active(String url, String username, String password) {
+    public FtpClient_active(String url, String username, String password) {
         try {
-            Socket socket = new Socket(url, PORT);//建立与服务器的socket连接
+            commandConn = new Socket(url, PORT);//建立与服务器的socket连接
 
             setUsername(username);
             setPassword(password);
 
-            controlReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            controlOut = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
+            controlReader = new BufferedReader(new InputStreamReader(commandConn.getInputStream()));
+            controlOut = new PrintWriter(new OutputStreamWriter(commandConn.getOutputStream()), true);
 
             initftp();  //登录到ftp服务器
         } catch (Exception e) {
@@ -76,6 +76,35 @@ public class Ftp_by_me_active {
         this.ftppassword = password;
     }
 
+    public boolean isLogined() {
+        return isLogined;
+    }
+
+    public boolean logOut() {
+        if(isLogined) {
+            controlOut.println("QUIT ");
+            try {
+                String msg;
+                do {
+                    msg = controlReader.readLine();
+                    System.out.println(msg);
+                } while (!msg.startsWith("221 "));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            controlOut.close();
+            controlReader.close();
+            commandConn.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return true;
+    }
+
     //获取所有文件和文件夹的名字
     public String[] getAllFile() throws Exception {
         String response;
@@ -111,33 +140,12 @@ public class Ftp_by_me_active {
 
     }
 
-    //通过字符串解析构造一个FTPfile对象
-    private void setFtpFileInfo(FTPFile in, String info) {
-        String infos[] = info.split(" ");
-        Vector<String> vinfos = new Vector<>();
-        for (int i = 0; i < infos.length; i++) {
-            if (!infos[i].equals(""))
-                vinfos.add(infos[i]);
-        }
-        in.setName(vinfos.get(8));
-        in.setSize(Integer.parseInt(vinfos.get(4)));
-        String type=info.substring(0,1);
-        if(type.equals("d"))
-        {
-            in.setType(1);//设置为文件夹
-        }else
-        {
-            in.setType(0);//设置为文件
-        }
-
-    }
-
 
     //生成InputStream用于上传本地文件
-    public void upload(String File_path) throws Exception {
+    public void upload(String File_path, String FileName) throws Exception {
         //本地文件读取-----------------------------------
-        System.out.print("File Path :" + File_path);
-        File f = new File(File_path);
+        System.out.print("File Path :" + File_path + File.separator + FileName);
+        File f = new File(File_path, FileName);
         if (!f.exists()) {
             System.out.println("File not Exists...");
             return;
@@ -234,4 +242,36 @@ public class Ftp_by_me_active {
         System.out.println(response);
     }
 
+    public boolean delete(String fileName) throws Exception {
+        String response;
+        // Send LIST command
+        controlOut.println("DELE " + fileName);
+
+        // Read command response
+        response = controlReader.readLine();
+        response = controlReader.readLine();
+        System.out.println(response);
+        return response.equals("250 文件删除完成");
+    }
+
+    public String getRemotePath() throws Exception {
+        String response;
+        // Send LIST command
+        controlOut.println("PWD ");
+
+        // Read command response
+        response = controlReader.readLine();
+        response = controlReader.readLine();
+        return response;
+    }
+
+    public void changeDir(String dir) throws Exception {
+        String response;
+        // Send LIST command
+        controlOut.println("CWD " + dir);
+
+        // Read command response
+        response = controlReader.readLine();
+
+    }
 }

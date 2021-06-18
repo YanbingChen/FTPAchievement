@@ -137,6 +137,12 @@ public class ConnectionThread extends Thread{
                                 writer.write("530 执行该命令需要登录，请登录后再执行相应的操作\r\n");
                                 writer.flush();
                             }
+                        } else {
+                            reader.close();
+                            writer.close();
+                            dataSocket.close();
+                            ctrlSocket.close();
+                            System.out.println("连接意外断开");
                         }
                     }
                     else {

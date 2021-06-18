@@ -1,25 +1,23 @@
-import org.apache.commons.net.ftp.FTPFile;
-
 import javax.swing.*;
-import javax.swing.filechooser.FileSystemView;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 
-public class ButtonColumn extends AbstractCellEditor implements
+public class DownloadButtonColumn extends AbstractCellEditor implements
         TableCellRenderer, TableCellEditor, ActionListener {
     private JTable table;
     private JButton renderButton;
     private JButton editButton;
     private String text;
+    private MainGUI guiThread;
 
-    public ButtonColumn(JTable table, int column) {
+    public DownloadButtonColumn(JTable table, int column, MainGUI guiThread) {
         super();
         this.table = table;
+        this.guiThread = guiThread;
         renderButton = new JButton();
         editButton = new JButton();
         editButton.setFocusPainted(false);
@@ -63,43 +61,40 @@ public class ButtonColumn extends AbstractCellEditor implements
 
         String[] file1 = new String[0];
         try {
-            file1 = Frame_Main.getFile(); //得到所有的文件
+            file1 = MainGUI.getFile(); //得到所有的文件
 
         } catch (Exception e1) {
             e1.printStackTrace();
         }
-        String from_file_name=getName(file1[table.getSelectedRow()]);
-        int result = 0;
-        File file = null;
-        String path = null;
-        JFileChooser fileChooser = new JFileChooser();
-        FileSystemView fsv = FileSystemView.getFileSystemView();
-        fsv.createFileObject(from_file_name);
-        //System.out.println(fsv.getHomeDirectory());  
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        //fileChooser.setCurrentDirectory(new File(from_file_name));  
-        fileChooser.setDialogTitle("另存为:");
-        //fileChooser.setApproveButtonText("保存");   
-        result = fileChooser.showSaveDialog(null);
-        if (JFileChooser.APPROVE_OPTION == result) {
-            path=fileChooser.getSelectedFile().getPath()+"\\"; //加"\\"是为了防止在桌面的时候C:destop最后没有\ 
-            System.out.println("path: "+path);
-            System.out.println("from_file_name:"+from_file_name);
+        String from_file_name = getName(file1[table.getSelectedRow()]);
+
+        // Check if SelectedRow is a Directory.
+        if(file1[table.getSelectedRow()].startsWith("文件夹")) {
             try {
-                Frame_Main.getFtp().download(from_file_name, path);
+                MainGUI.getFtp().changeDir(from_file_name);
+                MainGUI.remotePath = MainGUI.getFtp().getRemotePath();
+            } catch (Exception e2) {
+                e2.printStackTrace();
+            }
+
+        } else {
+            String path = MainGUI.getLocalPath();
+            try {
+                MainGUI.getFtp().download(from_file_name, path);
                 System.out.println("下载成功! ");
 
-            } catch (Exception e1) {
+
+
+            }catch (Exception e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
             }
-            finally{
-
-//                Frame_Main.getFtp().close_connection();
-            }
         }
 
+        // Refresh Tables
+        guiThread.setTableInfo();
     }
+
 
     private String getName(String s) {
         String[] splitstr = s.split(" ");
