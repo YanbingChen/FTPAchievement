@@ -1,3 +1,4 @@
+import javax.swing.*;
 import java.io.*;
 import java.net.Socket;
 import java.util.Vector;
@@ -6,12 +7,10 @@ public class FtpClient_passive implements Ftp_Client {
 
     private BufferedReader controlReader;
     private PrintWriter controlOut;
-    private Socket commandconn;
-    private Socket dataconn;
+    private Socket commandSocket;
+    private Socket dataSocket;
     private BufferedInputStream dataIn;
     private BufferedOutputStream dataOut;
-
-    private static String host;
 
     private String passHost="127.0.0.1";
     private String ftpusername;
@@ -27,14 +26,13 @@ public class FtpClient_passive implements Ftp_Client {
     public FtpClient_passive(String url, String username, String password) {
 
         try {
-            commandconn = new Socket(url, PORT);
+            commandSocket = new Socket(url, PORT);
 
             setUsername(username);
             setPassword(password);
 
-            controlReader = new BufferedReader(new InputStreamReader(commandconn.getInputStream()));
-            controlOut = new PrintWriter(new OutputStreamWriter(commandconn.getOutputStream()), true);
-
+            controlReader = new BufferedReader(new InputStreamReader(commandSocket.getInputStream()));
+            controlOut = new PrintWriter(new OutputStreamWriter(commandSocket.getOutputStream()), true);
 
             initftp();  //登录到ftp服务器
         } catch (Exception e) {
@@ -57,9 +55,8 @@ public class FtpClient_passive implements Ftp_Client {
         System.out.println(response);
 
         if (!response.startsWith("331 ")) {
-            throw new IOException(
-                    "SimpleFTP received an unknown response after sending the user: "
-                            + response);
+            JOptionPane.showConfirmDialog(null, response, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
+            throw new IOException("SimpleFTP received an unknown response after sending the user: " + response);
         }
 
         controlOut.println("PASS " + ftppassword);
@@ -67,9 +64,8 @@ public class FtpClient_passive implements Ftp_Client {
         response = controlReader.readLine();
         System.out.println(response);
         if (!response.startsWith("230 ")) {
-            throw new IOException(
-                    "SimpleFTP was unable to log in with the supplied password: "
-                            + response);
+            JOptionPane.showConfirmDialog(null, response, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
+            throw new IOException("SimpleFTP was unable to log in with the supplied password: "+ response);
         }
         this.isLogined = true;
     }
@@ -86,7 +82,6 @@ public class FtpClient_passive implements Ftp_Client {
     public boolean logOut() {
         if(isLogined) {
             controlOut.println("QUIT ");
-
             String msg;
             try {
                 do {
@@ -101,7 +96,7 @@ public class FtpClient_passive implements Ftp_Client {
         try {
             controlOut.close();
             controlReader.close();
-            commandconn.close();
+            commandSocket.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -128,7 +123,6 @@ public class FtpClient_passive implements Ftp_Client {
         response = controlReader.readLine();
         System.out.println(response);
 
-
         // Read data from server
         Vector<String> tempfiles = new Vector<>();
 
@@ -137,7 +131,7 @@ public class FtpClient_passive implements Ftp_Client {
             if(line.equals("213 当前目录下文件列表显示完成"))
                 break;
             System.out.println(line);
-            String[] spl = line.split(" ");
+            String[] spl = line.split(":");
             if(spl[0].equals("文件") || spl[0].equals("文件夹"))
                 tempfiles.add(line);
         }
@@ -152,48 +146,6 @@ public class FtpClient_passive implements Ftp_Client {
         return files;
     }
 
-    //生成InputStream用于上传本地文件
-    public void upload(String File_path, String FileName) throws Exception {
-        System.out.print("File Path :" + File_path + File.separator + FileName);
-
-        File f = new File(File_path, FileName);
-        if (!f.exists()) {
-            System.out.println("File not Exists...");
-            return;
-        }
-
-        FileInputStream is = new FileInputStream(f);
-        BufferedInputStream input = new BufferedInputStream(is);
-        String response;
-
-        //判断是不是在passive模式
-        checkIsPassiveMode();
-
-        // Send command STOR
-        controlOut.println("STOR " + f.getName());
-
-        // Read command response
-        response = controlReader.readLine();
-        System.out.println(response);
-
-        dataOut = new BufferedOutputStream(dataconn.getOutputStream());
-        byte[] buffer = new byte[4096];
-        int bytesRead = 0;
-        while ((bytesRead = input.read(buffer)) != -1) {
-            dataOut.write(buffer, 0, bytesRead);
-        }
-
-        dataOut.flush();
-        input.close();
-        dataOut.close();
-        dataconn.close();
-        isPassMode = false;
-
-        response = controlReader.readLine();
-        System.out.println(response);
-
-    }
-
     //将服务器设置为passive模式
     private void checkIsPassiveMode() throws Exception {
         String response;
@@ -202,6 +154,7 @@ public class FtpClient_passive implements Ftp_Client {
             response = controlReader.readLine();
             System.out.println(response);
             if (!response.startsWith("2277 ")) {
+                JOptionPane.showConfirmDialog(null, response, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
                 throw new IOException("FTPClient could not request passive mode: " + response);
             }
 
@@ -211,10 +164,11 @@ public class FtpClient_passive implements Ftp_Client {
                 String host = ipPort[0];
                 int port = Integer.parseInt(ipPort[1]);
 
-                dataconn = new Socket(host, port);
-                if(dataconn.isConnected()) {
+                dataSocket = new Socket(host, port);
+                if(dataSocket.isConnected()) {
                     response = controlReader.readLine();
                     if (!response.startsWith("225 ")) {
+                        JOptionPane.showConfirmDialog(null, response, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
                         throw new IOException("FTPClient could not request passive mode: " + response);
                     } else {
                         isPassMode = true;
@@ -224,6 +178,48 @@ public class FtpClient_passive implements Ftp_Client {
         }
     }
 
+    //生成InputStream用于上传本地文件
+    public void upload(String File_path, String FileName) throws Exception {
+        System.out.print("File Path :" + File_path + File.separator + FileName);
+
+        File f = new File(File_path, FileName);
+        if (!f.exists()) {
+            System.out.println("File not Exists...");
+            JOptionPane.showConfirmDialog(null, "File not Exists...", "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
+            throw new IOException("Uploading-file not Exists...");
+        }
+
+        FileInputStream is = new FileInputStream(f);
+        BufferedInputStream input = new BufferedInputStream(is);
+        String response;
+
+        //设置passive模式
+        checkIsPassiveMode();
+
+        // Send command STOR
+        controlOut.println("STOR " + f.getName());
+
+        // Read command response
+        response = controlReader.readLine();
+        System.out.println(response);
+
+        dataOut = new BufferedOutputStream(dataSocket.getOutputStream());
+        byte[] buffer = new byte[4096];
+        int bytesRead = 0;
+        while ((bytesRead = input.read(buffer)) != -1) {
+            dataOut.write(buffer, 0, bytesRead);
+        }
+
+        dataOut.flush();
+        input.close();
+        dataOut.close();
+        dataSocket.close();
+        isPassMode = false;
+
+        response = controlReader.readLine();
+        System.out.println(response);
+
+    }
 
     //下载 from_file_name是下载的文件名,to_path是下载到的路径地址
     public void download(String from_file_name, String to_path) throws Exception {
@@ -240,7 +236,7 @@ public class FtpClient_passive implements Ftp_Client {
             // Read data from server
             BufferedOutputStream output = new BufferedOutputStream(
                     new FileOutputStream(new File(to_path, from_file_name)));
-            dataIn = new BufferedInputStream(dataconn.getInputStream());
+            dataIn = new BufferedInputStream(dataSocket.getInputStream());
             byte[] buffer = new byte[4096];
             int bytesRead = 0;
             while ((bytesRead = dataIn.read(buffer)) != -1) {
@@ -250,32 +246,39 @@ public class FtpClient_passive implements Ftp_Client {
             output.flush();
             output.close();
             dataIn.close();
-            dataconn.close();
             isPassMode = false;
-
             response = controlReader.readLine();
             System.out.println(response);
         } else {
-            System.out.println(response);
+            JOptionPane.showConfirmDialog(null, response, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
+            throw new IOException("Cannot find file " + response);
         }
+        dataSocket.close();
 
     }
 
     public boolean delete(String fileName) throws Exception {
         String response;
-        // Send LIST command
+        // Send DELE command
         controlOut.println("DELE " + fileName);
-
         // Read command response
         response = controlReader.readLine();
+        if (!response.equals("开始删除文件")) {
+            JOptionPane.showConfirmDialog(null, response, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
+            throw new IOException("File not exists " + response);
+        }
         response = controlReader.readLine();
         System.out.println(response);
+        if (!response.startsWith("250 ")) {
+            JOptionPane.showConfirmDialog(null, response, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
+            throw new IOException("Unable to delete " + response);
+        }
         return response.equals("250 文件删除完成");
     }
 
     public String getRemotePath() throws Exception {
         String response;
-        // Send LIST command
+        // Send PWD command
         controlOut.println("PWD ");
 
         // Read command response
@@ -286,12 +289,14 @@ public class FtpClient_passive implements Ftp_Client {
 
     public void changeDir(String dir) throws Exception {
         String response;
-        // Send LIST command
+        // Send CWD command
         controlOut.println("CWD " + dir);
-
         // Read command response
         response = controlReader.readLine();
-
+        if (!response.startsWith("212 ")) {
+            JOptionPane.showConfirmDialog(null, response, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
+            throw new IOException("unable to changeDir"+ response);
+        }
     }
 
 }

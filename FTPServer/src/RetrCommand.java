@@ -28,6 +28,7 @@ public class RetrCommand implements Command{
                 }
                 dataOut.flush();
                 dataOut.close();
+                is.close();
                 writer.write("250 文件回传完成\r\n");
                 writer.flush();
             } catch (Exception e) {

@@ -25,10 +25,11 @@ public class CwdCommand implements Command{
                 }
                 writer.write("\r\n");
                 writer.flush();
-            } else {
-                writer.write("550 目录不存在");      // ?
             }
-
+            else {
+                writer.write("504 无效命令参数\r\n");
+                writer.flush();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

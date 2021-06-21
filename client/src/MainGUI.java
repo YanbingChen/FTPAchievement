@@ -17,7 +17,6 @@ import javax.swing.border.LineBorder;
 
 public class MainGUI implements ActionListener{
 
-
     //初始化参数--------------------------------
     static String[] file;
     static String[] localFiles;
@@ -34,7 +33,6 @@ public class MainGUI implements ActionListener{
     private JScrollPane ftpScrollPane = null;
     private JScrollPane localScrollPane  = null;
 
-    private JTextField logField;
     private JTextField localPathText;
     private JTextField remotePathText;
 
@@ -128,7 +126,6 @@ public class MainGUI implements ActionListener{
         passwordField.setBounds(80,59,167,24);
         passwordField.setFont(font_text);
         frame.getContentPane().add(passwordField);
-
 
         // Setting FTP Mode
         ftpMode.setBounds(334,7,96,24);
@@ -271,7 +268,6 @@ public class MainGUI implements ActionListener{
 
             } catch (Exception e1) {
                 e1.printStackTrace();
-                JOptionPane.showConfirmDialog(null, "用户名或者密码错误\n username："+username, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -294,7 +290,7 @@ public class MainGUI implements ActionListener{
                 localScrollPane = null;
                 frame.repaint();
 
-                //Set Buttom Mode
+                //Set Button Mode
                 refresh.setEnabled(false);
                 exitButton.setEnabled(false);
                 modeSwitch.setEnabled(true);
@@ -440,22 +436,17 @@ public class MainGUI implements ActionListener{
     }
 
     private String getName(String s) {
-        String[] splitstr = s.split(" ");
+        String[] splitstr = s.split(":");
         return splitstr[1];
     }
 
     private String getSize(String s) {
-        String[] splitstr = s.split(" ");
+        String[] splitstr = s.split(":");
         return splitstr[2];
     }
 
-    private boolean isFile(String s) {
-        String[] splitstr = s.split(" ");
-        return splitstr[0].equals("文件");
-    }
-
     private boolean isDirectory(String s) {
-        String[] splitstr = s.split(" ");
+        String[] splitstr = s.split(":");
         return splitstr[0].equals("文件夹");
     }
 

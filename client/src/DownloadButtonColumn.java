@@ -97,7 +97,7 @@ public class DownloadButtonColumn extends AbstractCellEditor implements
 
 
     private String getName(String s) {
-        String[] splitstr = s.split(" ");
+        String[] splitstr = s.split(":");
         return splitstr[1];
     }
 

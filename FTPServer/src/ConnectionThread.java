@@ -110,12 +110,12 @@ public class ConnectionThread extends Thread{
                         System.out.println(command);
                         if(command !=null) {
                             //command和args之间用空格隔开
-                            String[] datas = command.split(" ");
+                            String[] datas = command.split(" ",2);
                             //读取命令
                             Command commandSolver = CommandFactory.createCommand(datas[0]);
                             //排除不合法命令可能性
                             if(commandSolver == null) {
-                                    writer.write("500  该命令不存在，请重新输入");
+                                    writer.write("500 该命令不存在，请重新输入");
                             }
                             //登录验证,在没有登录的情况下，无法使用除了user,pass,quit之外的命令
                             if(loginValidate(commandSolver)){

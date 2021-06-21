@@ -74,9 +74,10 @@ public class DeleteButtonColumn extends AbstractCellEditor implements
             try {
                 String[] file1 = MainGUI.getFile(); //得到所有的文件
                 String from_file_name = getName(file1[table.getSelectedRow()]);
-                if(!MainGUI.getFtp().delete(from_file_name)){
-                    JOptionPane.showConfirmDialog(null, "文件删除出错", "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
-                };
+                MainGUI.getFtp().delete(from_file_name);
+//                if(!MainGUI.getFtp().delete(from_file_name)){
+//                    JOptionPane.showConfirmDialog(null, "文件删除出错", "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
+//                };
             } catch (Exception e1) {
                 e1.printStackTrace();
             }
@@ -87,7 +88,7 @@ public class DeleteButtonColumn extends AbstractCellEditor implements
     }
 
     private String getName(String s) {
-        String[] splitstr = s.split(" ");
+        String[] splitstr = s.split(":");
         return splitstr[1];
     }
 

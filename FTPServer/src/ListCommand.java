@@ -22,12 +22,12 @@ public class ListCommand implements Command{
         for(String name : lists) {
             File temp = new File(desDir+File.separator+name);
             if(temp.isDirectory()) {
-                flag = "文件夹 ";
+                flag = "文件夹:";
             }
             else {
-                flag = "文件 ";
+                flag = "文件:";
             }
-            String oneinfo=flag+name+" "+temp.length()+" bytes";
+            String oneinfo=flag+name+":"+temp.length()+":bytes";
             allfiles.add(oneinfo);
         }
         //返回文件列表

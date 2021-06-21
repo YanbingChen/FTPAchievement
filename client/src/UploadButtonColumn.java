@@ -81,13 +81,12 @@ public class UploadButtonColumn extends AbstractCellEditor implements
             //上传点击按钮触发------------------------------------
         }
 
-
         // refresh tables
         guiThread.setTableInfo();
     }
 
     private String getName(String s) {
-        String[] splitstr = s.split(" ");
+        String[] splitstr = s.split(":");
         return splitstr[1];
     }
 
