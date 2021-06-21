@@ -201,7 +201,7 @@ public class FtpClient_passive implements Ftp_Client {
             controlOut.println("PASV mode");
             response = controlReader.readLine();
             System.out.println(response);
-            if (!response.startsWith("227 ")) {
+            if (!response.startsWith("2277 ")) {
                 throw new IOException("FTPClient could not request passive mode: " + response);
             }
 

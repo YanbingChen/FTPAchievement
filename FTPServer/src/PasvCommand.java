@@ -23,7 +23,7 @@ public class PasvCommand implements Command {
                 serverSocket = getDataServerSocket(tempport);
             }
             if (tempport != -1 && serverSocket != null) {
-                response = "227 进入被动模式 127.0.0.1:" + tempport;
+                response = "2277 进入被动模式 127.0.0.1:" + tempport;
                 //System.out.println(response);
             }
             writer.write(response+"\r\n");
