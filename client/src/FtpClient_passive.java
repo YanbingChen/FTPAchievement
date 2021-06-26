@@ -53,7 +53,7 @@ public class FtpClient_passive implements Ftp_Client {
 
         String response = controlReader.readLine();
         System.out.println(response);
-
+        //出错处理：用户名错误
         if (!response.startsWith("331 ")) {
             JOptionPane.showConfirmDialog(null, response, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
             throw new IOException("SimpleFTP received an unknown response after sending the user: " + response);
@@ -63,6 +63,7 @@ public class FtpClient_passive implements Ftp_Client {
 
         response = controlReader.readLine();
         System.out.println(response);
+        //出错处理：密码错误
         if (!response.startsWith("230 ")) {
             JOptionPane.showConfirmDialog(null, response, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
             throw new IOException("SimpleFTP was unable to log in with the supplied password: "+ response);
@@ -153,6 +154,7 @@ public class FtpClient_passive implements Ftp_Client {
             controlOut.println("PASV mode");
             response = controlReader.readLine();
             System.out.println(response);
+            //出错处理：被动模式无法设置
             if (!response.startsWith("2277 ")) {
                 JOptionPane.showConfirmDialog(null, response, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
                 throw new IOException("FTPClient could not request passive mode: " + response);
@@ -167,9 +169,10 @@ public class FtpClient_passive implements Ftp_Client {
                 dataSocket = new Socket(host, port);
                 if(dataSocket.isConnected()) {
                     response = controlReader.readLine();
+                    //出错处理：被动模式连接错误
                     if (!response.startsWith("225 ")) {
                         JOptionPane.showConfirmDialog(null, response, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
-                        throw new IOException("FTPClient could not request passive mode: " + response);
+                        throw new IOException("Unable to connect: " + response);
                     } else {
                         isPassMode = true;
                     }
@@ -184,6 +187,7 @@ public class FtpClient_passive implements Ftp_Client {
 
         File f = new File(File_path, FileName);
         if (!f.exists()) {
+            //出错处理：文件不存在
             System.out.println("File not Exists...");
             JOptionPane.showConfirmDialog(null, "File not Exists...", "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
             throw new IOException("Uploading-file not Exists...");
@@ -250,6 +254,7 @@ public class FtpClient_passive implements Ftp_Client {
             response = controlReader.readLine();
             System.out.println(response);
         } else {
+            //出错处理：下载错误
             JOptionPane.showConfirmDialog(null, response, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
             throw new IOException("Cannot find file " + response);
         }
@@ -264,12 +269,14 @@ public class FtpClient_passive implements Ftp_Client {
         // Read command response
         response = controlReader.readLine();
         if (!response.equals("开始删除文件")) {
+            //出错处理：文件不存在
             JOptionPane.showConfirmDialog(null, response, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
             throw new IOException("File not exists " + response);
         }
         response = controlReader.readLine();
         System.out.println(response);
         if (!response.startsWith("250 ")) {
+            //出错处理：删除错误
             JOptionPane.showConfirmDialog(null, response, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
             throw new IOException("Unable to delete " + response);
         }
@@ -294,6 +301,7 @@ public class FtpClient_passive implements Ftp_Client {
         // Read command response
         response = controlReader.readLine();
         if (!response.startsWith("212 ")) {
+            //出错处理：路径更改错误
             JOptionPane.showConfirmDialog(null, response, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
             throw new IOException("unable to changeDir"+ response);
         }

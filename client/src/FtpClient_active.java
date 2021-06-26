@@ -50,6 +50,7 @@ public class FtpClient_active implements Ftp_Client {
 
         String response = controlReader.readLine();
         System.out.println(response);
+        //出错处理：用户名错误
         if (!response.startsWith("331 ")) {
             JOptionPane.showConfirmDialog(null, response, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
             throw new IOException("SimpleFTP received an unknown response after sending the user: " + response);
@@ -59,6 +60,7 @@ public class FtpClient_active implements Ftp_Client {
 
         response = controlReader.readLine();
         System.out.println(response);
+        //出错处理：密码错误
         if (!response.startsWith("230 ")) {
             JOptionPane.showConfirmDialog(null, response, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
            throw new IOException("SimpleFTP was unable to log in with the supplied password: "+ response);
@@ -154,6 +156,7 @@ public class FtpClient_active implements Ftp_Client {
 
         String response;
         response=controlReader.readLine();
+        //出错处理：数据连接无法建立
         if (!response.startsWith("225 ")) {
             JOptionPane.showConfirmDialog(null, response, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
             throw new IOException("Unable to connect " + response);
@@ -168,6 +171,7 @@ public class FtpClient_active implements Ftp_Client {
         //本地文件读取-----------------------------------
         System.out.print("File Path :" + File_path + File.separator + FileName);
         File f = new File(File_path, FileName);
+        //出错处理：文件不存在
         if (!f.exists()) {
             System.out.println("File not Exists...");
             JOptionPane.showConfirmDialog(null, "File not Exists...", "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
@@ -229,6 +233,7 @@ public class FtpClient_active implements Ftp_Client {
             response = controlReader.readLine();
             System.out.println(response);
         }else {
+            //出错处理：下载错误
             JOptionPane.showConfirmDialog(null, response, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
             throw new IOException("Cannot find file " + response);
         }
@@ -244,12 +249,14 @@ public class FtpClient_active implements Ftp_Client {
         // Read command response
         response = controlReader.readLine();
         if (!response.equals("开始删除文件")) {
+            //出错处理：待删除文件不存在
             JOptionPane.showConfirmDialog(null, response, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
             throw new IOException("File not exists " + response);
         }
         response = controlReader.readLine();
         System.out.println(response);
         if (!response.startsWith("250 ")) {
+            //出错处理：删除错误
             JOptionPane.showConfirmDialog(null, response, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
             throw new IOException("Unable to delete " + response);
         }
@@ -275,6 +282,7 @@ public class FtpClient_active implements Ftp_Client {
         // Read command response
         response = controlReader.readLine();
         if (!response.startsWith("212 ")) {
+            //出错处理：更改路径错误
             JOptionPane.showConfirmDialog(null, response, "ERROR_MESSAGE",JOptionPane.ERROR_MESSAGE);
             throw new IOException("unable to changeDir"+ response);
         }

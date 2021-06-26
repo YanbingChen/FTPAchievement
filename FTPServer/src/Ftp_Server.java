@@ -5,11 +5,11 @@ import java.net.Socket;
 /**
  * 服务器主进程
  **/
-public class FtpServer {
+public class Ftp_Server {
 
     ServerSocket serverSocket;
 
-    public FtpServer(int port) throws IOException {
+    public Ftp_Server(int port) throws IOException {
         serverSocket = new ServerSocket(port);
         //初始化系统信息  
         Share.init();
@@ -26,7 +26,7 @@ public class FtpServer {
     }
 
     public static void main(String args[]) throws IOException {
-        FtpServer ftpServer = new FtpServer(21);
+        Ftp_Server ftpServer = new Ftp_Server(21);
         ftpServer.listen();
     }
 
